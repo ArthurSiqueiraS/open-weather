@@ -1,23 +1,65 @@
 require 'net/http'
 require 'json'
 
-# class OpenWeather
-  # class << self
-    API_KEY = '2ca3dec6beffde6c7259a033eefa8f17'
+class OpenWeather
+  API_URL = 'http://api.openweathermap.org/data/2.5'
+  API_KEY = '2ca3dec6beffde6c7259a033eefa8f17'
 
-    def city_weather
-      url = URI.parse("http://api.openweathermap.org/data/2.5/weather?id=2172797&appid=#{API_KEY}&lang=pt&units=metric")
-      res = Net::HTTP.get(url)
-      data = JSON.parse(res)
-      conditions = data['weather'].map { |w| w['description'] }
+  attr_accessor :lang, :units
 
-      {
-        temp: data['main']['temp'].round,
-        weather_conditions: conditions,
-        city: data['name']
-      }
+  def initialize(lang: 'pt', units: 'metric')
+    @lang = lang
+    @units = units
+  end
+
+  def city_weather(id)
+    data = request('/weather', { id: id })
+
+    return unless data['main']
+
+    conditions = data['weather'].map { |w| w['description'] }
+
+    {
+      temp: data['main']['temp'].round,
+      weather_conditions: conditions,
+      city: data['name']
+    }
+  end
+
+  def city_forecast(id)
+    data = request('/forecast', { id: id })
+
+    return unless data['list']
+
+    # Group forecast list by date
+    days = data['list'].group_by { |f| f['dt_txt'][0..9] }
+
+    forecast = {}
+    today = Time.now.strftime('%F')
+
+    # Get temp average of the next 5 days
+    days.each do |day, list|
+      break if forecast.keys.count == 5
+
+      if day != today
+        temp_average = list.sum { |d| d['main']['temp'] } / list.count.to_f
+        forecast[day] = temp_average.round(2)
+      end
     end
-  # end
-# end
 
-city_weather
+    forecast
+  end
+
+  private
+
+  def request(route, params)
+    query = URI.encode_www_form(params.merge({
+      appid: API_KEY,
+      lang: @lang,
+      units: @units
+    }))
+    url = URI.parse("#{API_URL}#{route}?#{query}")
+    res = Net::HTTP.get(url)
+    JSON.parse(res)
+  end
+end

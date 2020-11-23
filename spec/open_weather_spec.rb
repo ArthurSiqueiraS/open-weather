@@ -50,9 +50,10 @@ RSpec.describe OpenWeather do
     it "hash contains forecast temperatures for the next 5 days" do
       today = Time.now
       days = 1
-      @res.each do |date_key, _|
+      @res.each do |date_key, temp|
         expected_date = (today + days.days)
         expect(date_key.to_date).to eq(expected_date.to_date)
+        expect(temp).to be_kind_of(Float)
         days += 1
       end
     end
