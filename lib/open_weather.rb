@@ -22,8 +22,8 @@ class OpenWeather
     {
       temp: data['main']['temp'].round,
       weather_conditions: conditions,
-      city: data['name'],
-      date: today
+      city: city(data),
+      date: today,
     }
   end
 
@@ -47,7 +47,7 @@ class OpenWeather
       end
     end
 
-    { forecast: forecast, city: data['city']['name'] }
+    { forecast: forecast, city: city(data['city']) }
   end
 
   private
@@ -65,5 +65,13 @@ class OpenWeather
 
   def today
     Time.now.strftime('%F')
+  end
+
+  def city(data)
+    {
+      name: data['name'],
+      lat: data['coord']['lat'],
+      lon: data['coord']['lon']
+    }
   end
 end
