@@ -22,7 +22,8 @@ class OpenWeather
     {
       temp: data['main']['temp'].round,
       weather_conditions: conditions,
-      city: data['name']
+      city: data['name'],
+      date: today
     }
   end
 
@@ -35,7 +36,6 @@ class OpenWeather
     days = data['list'].group_by { |f| f['dt_txt'][0..9] }
 
     forecast = {}
-    today = Time.now.strftime('%F')
 
     # Get temp average of the next 5 days
     days.each do |day, list|
@@ -47,7 +47,7 @@ class OpenWeather
       end
     end
 
-    forecast
+    { forecast: forecast, city: data['city']['name'] }
   end
 
   private
@@ -61,5 +61,9 @@ class OpenWeather
     url = URI.parse("#{API_URL}#{route}?#{query}")
     res = Net::HTTP.get(url)
     JSON.parse(res)
+  end
+
+  def today
+    Time.now.strftime('%F')
   end
 end

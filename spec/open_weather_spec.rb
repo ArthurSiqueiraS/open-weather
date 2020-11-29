@@ -44,13 +44,13 @@ RSpec.describe OpenWeather do
     end
 
     it 'hash contains 5 keys' do
-      expect(@res.keys.length).to eq(5)
+      expect(@res[:forecast].keys.length).to eq(5)
     end
 
     it "hash contains forecast temperatures for the next 5 days" do
       today = Time.now
       days = 1
-      @res.each do |date_key, temp|
+      @res[:forecast].each do |date_key, temp|
         expected_date = (today + days.days)
         expect(date_key.to_date).to eq(expected_date.to_date)
         expect(temp).to be_kind_of(Float)
@@ -65,7 +65,7 @@ RSpec.describe OpenWeather do
     end
 
     it 'returns nil' do
-      expect(@rest).to be_nil
+      expect(@res).to be_nil
     end
   end
 end
